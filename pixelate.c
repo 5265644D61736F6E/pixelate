@@ -13,13 +13,15 @@
 */
 
 void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_width,int t_height,unsigned char* palette,int palette_len) {
-  int* dists;
+  int* dists; // distance between pixel colors and palette colors
+  int* closest; // palette indicies of lowest distance to all pixels
 
-  int y;
-  int x;
-  int i;
-  int j;
-  int a;
+  int y; // y coordinate iterator
+  int x; // x coordinate iterator
+  int i; // primary iterator (over palette)
+  int j; // secondary iterator (over channels)
+  int a; // square root of additive
+  int l; // palette index of lowest distance to current pixel
 
   dists = malloc(c_width * c_height * palette_len * sizeof(int));
 
@@ -40,12 +42,35 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
 	      + i] += a * a;
 	}
 
-	printf("%d,",dists[y * c_width * palette_len
-			 + x * palette_len
-		         + i]);
+	//printf("%d,",dists[y * c_width * palette_len
+	//		 + x * palette_len
+	//	         + i]);
       }
 
-      printf("\t");
+      //printf("\t");
+    }
+
+    //printf("\n");
+  }
+
+  closest = malloc(c_width * c_height * sizeof(int));
+
+  for (y = 0;y < c_height;y++) {
+    for (x = 0;x < c_width;x++) {
+      l = 0;
+
+      for (i = 0;i < palette_len;i++)
+	if (dists[y * c_width * palette_len
+		+ x * palette_len
+		+ i]
+	  < dists[y * c_width * palette_len
+		+ x * palette_len
+		+ l])
+	  l = i;
+
+      closest[y * c_width + x] = l;
+
+      printf("%u ",l);
     }
 
     printf("\n");
