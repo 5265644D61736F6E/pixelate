@@ -34,58 +34,30 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
     return;
   }
 
-  dists = malloc(c_width * c_height * palette_len * sizeof(int));
+  dists = malloc(palette_len * sizeof(int));
+  closest = malloc(c_width * c_height * sizeof(int));
 
-  for (y = 0;y < c_height;y++) {
+  for (y = 0;y < c_height;y++)
     for (x = 0;x < c_width;x++) {
+      l = 0;
+
       for (i = 0;i < palette_len;i++) {
 	// initialize value
-	dists[y * c_width * palette_len
-	    + x * palette_len
-	    + i] = 0;
+	dists[i] = 0;
 
 	for (j = 0;j < channels;j++) {
 	  // add square of difference
 
 	  a = (int) buf[y * c_width * channels + x * channels + j] - (int) palette[i * channels + j];
-	  dists[y * c_width * palette_len
-	      + x * palette_len
-	      + i] += a * a;
+	  dists[i] += a * a;
 	}
 
-	//printf("%d,",dists[y * c_width * palette_len
-	//		 + x * palette_len
-	//	         + i]);
+	if (dists[i] < dists[l])
+	  l = i;
       }
 
-      //printf("\t");
-    }
-
-    //printf("\n");
-  }
-
-  closest = malloc(c_width * c_height * sizeof(int));
-
-  for (y = 0;y < c_height;y++) {
-    for (x = 0;x < c_width;x++) {
-      l = 0;
-
-      for (i = 0;i < palette_len;i++)
-	if (dists[y * c_width * palette_len
-		+ x * palette_len
-		+ i]
-	  < dists[y * c_width * palette_len
-		+ x * palette_len
-		+ l])
-	  l = i;
-
       closest[y * c_width + x] = l;
-
-      //printf("%u ",l);
     }
-
-    //printf("\n");
-  }
 
   outcolors = malloc(t_height * t_width * sizeof(int));
   colorcount = malloc(palette_len * sizeof(int));
@@ -101,22 +73,15 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
 
       outcolors[y1 * t_width + x1] = 0;
 
-      for (i = 0;i < palette_len;i++) {
+      for (i = 0;i < palette_len;i++)
 	if (colorcount[i]
 	  > colorcount[outcolors[y1 * t_width + x1]])
 	  outcolors[y1 * t_width + x1] = i;
 
-	printf("%u ",colorcount[i]);
-      }
-
-      printf("%u\n",outcolors[y1 * t_width + x1]);
-    }
-
-  for (y1 = 0;y1 < t_height;y1++)
-    for (x1 = 0;x1 < t_width;x1++)
       for (y2 = y1 * c_height / t_height;y2 < (y1 + 1) * c_height / t_height;y2++)
 	for (x2 = x1 * c_width / t_width;x2 < (x1 + 1) * c_width / t_width;x2++)
 	  memcpy(buf + y2 * c_width * channels + x2 * channels,palette + outcolors[y1 * t_width + x1] * channels,channels);
+    }
 
   // clean up
 
