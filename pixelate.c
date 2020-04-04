@@ -118,8 +118,12 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
 	for (x2 = x1 * c_width / t_width;x2 < (x1 + 1) * c_width / t_width;x2++)
 	  memcpy(buf + y2 * c_width * channels + x2 * channels,palette + outcolors[y1 * t_width + x1] * channels,channels);
 
+  // clean up
+
   free(dists);
   free(closest);
+  free(outcolors);
+  free(colorcount);
 }
 
 int test() {
@@ -134,7 +138,7 @@ int test() {
     0x70,0x70,0x70,
     0x80,0x80,0x80,
     0x90,0x90,0x90,
-    0xA0,0x00,0x00,
+    0xA0,0xA0,0xA0,
     0xB0,0x00,0x00,
     0xC0,0xC0,0xC0,
     0xD0,0xD0,0xD0,
