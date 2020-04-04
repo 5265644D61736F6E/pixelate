@@ -112,12 +112,18 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
       printf("%u\n",outcolors[y1 * t_width + x1]);
     }
 
+  for (y1 = 0;y1 < t_height;y1++)
+    for (x1 = 0;x1 < t_width;x1++)
+      for (y2 = y1 * c_height / t_height;y2 < (y1 + 1) * c_height / t_height;y2++)
+	for (x2 = x1 * c_width / t_width;x2 < (x1 + 1) * c_width / t_width;x2++)
+	  memcpy(buf + y2 * c_width * channels + x2 * channels,palette + outcolors[y1 * t_width + x1] * channels,channels);
+
   free(dists);
   free(closest);
 }
 
 int test() {
-  char img[48] = {
+  unsigned char img[48] = {
     0x00,0x00,0x00,
     0x10,0x10,0x10,
     0x20,0x20,0x20,
@@ -143,6 +149,11 @@ int test() {
   };
 
   pixelate(img,3,4,4,2,2,palette,3);
+
+  for (int i = 0;i < 48;i++)
+    printf("%u,",img[i]);
+
+  printf("\b \n");
 }
 
 int main() {
