@@ -15,13 +15,24 @@
 void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_width,int t_height,unsigned char* palette,int palette_len) {
   int* dists; // distance between pixel colors and palette colors
   int* closest; // palette indicies of lowest distance to all pixels
+  int* outcolors; // palette indicies to output
+  int* colorcount; // count of colors for the current output pixel
 
   int y; // y coordinate iterator
   int x; // x coordinate iterator
+  int y1; // y coordinate iterator
+  int x1; // x coordinate iterator
+  int y2; // y coordinate iterator
+  int x2; // x coordinate iterator
   int i; // primary iterator (over palette)
   int j; // secondary iterator (over channels)
   int a; // square root of additive
   int l; // palette index of lowest distance to current pixel
+
+  if (c_width < t_width || c_height < t_height) {
+    fprintf(stderr,"pixelate can only downscale images. Target dimensions must be smaller than current dimensions.\n");
+    return;
+  }
 
   dists = malloc(c_width * c_height * palette_len * sizeof(int));
 
@@ -70,13 +81,39 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
 
       closest[y * c_width + x] = l;
 
-      printf("%u ",l);
+      //printf("%u ",l);
     }
 
-    printf("\n");
+    //printf("\n");
   }
 
-  free(dists); // clean up
+  outcolors = malloc(t_height * t_width * sizeof(int));
+  colorcount = malloc(palette_len * sizeof(int));
+
+  for (y1 = 0;y1 < t_height;y1++)
+    for (x1 = 0;x1 < t_width;x1++) {
+      for (i = 0;i < palette_len;i++)
+	colorcount[i] = 0;
+
+      for (y2 = y1 * c_height / t_height;y2 < (y1 + 1) * c_height / t_height;y2++)
+	for (x2 = x1 * c_width / t_width;x2 < (x1 + 1) * c_width / t_width;x2++)
+	  colorcount[closest[y2 * c_width + x2]]++;
+
+      outcolors[y1 * t_width + x1] = 0;
+
+      for (i = 0;i < palette_len;i++) {
+	if (colorcount[i]
+	  > colorcount[outcolors[y1 * t_width + x1]])
+	  outcolors[y1 * t_width + x1] = i;
+
+	printf("%u ",colorcount[i]);
+      }
+
+      printf("%u\n",outcolors[y1 * t_width + x1]);
+    }
+
+  free(dists);
+  free(closest);
 }
 
 int test() {
@@ -91,10 +128,10 @@ int test() {
     0x70,0x70,0x70,
     0x80,0x80,0x80,
     0x90,0x90,0x90,
-    0xA0,0xA0,0xA0,
-    0xB0,0xB0,0xB0,
-    0xC0,0x00,0x00,
-    0xD0,0x00,0x00,
+    0xA0,0x00,0x00,
+    0xB0,0x00,0x00,
+    0xC0,0xC0,0xC0,
+    0xD0,0xD0,0xD0,
     0xE0,0x00,0x00,
     0xF0,0x00,0x00
   };
@@ -105,7 +142,7 @@ int test() {
     0xFF,0xFF,0xFF
   };
 
-  pixelate(img,3,4,4,4,4,palette,3);
+  pixelate(img,3,4,4,2,2,palette,3);
 }
 
 int main() {
