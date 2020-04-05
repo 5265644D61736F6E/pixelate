@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "pixelate.h"
+
 // a linked list is needed for the user interface to record colors
 typedef struct _list {
   char* val;
@@ -175,7 +177,7 @@ int test() {
     0xFF,0xFF,0xFF
   };
 
-  pixelate_cli(img,3,4,4,3,3);
+  pixelate_gui(img,3,4,4);
 
   for (int i = 0;i < 48;i++)
     printf("%u,",img[i]);
