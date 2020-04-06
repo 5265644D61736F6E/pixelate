@@ -2,6 +2,15 @@
 
 #include <gtk/gtk.h>
 
+#include "pixelate.h"
+
+// a linked list is needed for the user interface to record colors
+typedef struct _list {
+  char* val;
+
+  struct _list* next;
+} list_t;
+
 char* arg0;
 int   arg1;
 int   arg2;
@@ -10,6 +19,9 @@ int   arg4;
 int   arg5;
 char* arg6;
 int   arg7;
+
+list_t* list;
+int state;
 
 GtkWidget* window;
 GtkWidget* t_width_in;
@@ -32,19 +44,54 @@ void changed(GtkEditable* infield,gpointer _0) {
 }
 
 void pressed(GtkButton* button,gpointer _0) {
-  arg4 = strtol(gtk_entry_get_text(GTK_ENTRY(t_width_in)),NULL,0);
-  arg5 = strtol(gtk_entry_get_text(GTK_ENTRY(t_height_in)),NULL,0);
+  if (state) {
+    list_t* l_curr;
+    int l_count;
 
-  gtk_widget_hide(t_width_in);
-  gtk_widget_hide(t_height_in);
-  gtk_widget_hide(submit);
-  gtk_widget_show(img);
+    l_curr = list;
+    l_count = 0;
 
-  gtk_window_resize(GTK_WINDOW(window),arg2,arg3);
+    while (l_curr != NULL) {
+      l_curr = l_curr->next;
+      l_count++;
+    }
+
+    arg6 = malloc(l_count * arg1);
+    arg7 = l_count;
+
+    l_curr = list;
+
+    for (int i = 0;i < l_count;i++) {
+      memcpy(arg6 + i * arg1,l_curr->val,arg1);
+      l_curr = l_curr->next;
+    }
+
+    // perform the operation
+    pixelate(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+  } else {
+    arg4 = strtol(gtk_entry_get_text(GTK_ENTRY(t_width_in)),NULL,0);
+    arg5 = strtol(gtk_entry_get_text(GTK_ENTRY(t_height_in)),NULL,0);
+
+    gtk_button_set_label(GTK_BUTTON(submit),"Submit");
+
+    gtk_widget_hide(t_width_in);
+    gtk_widget_hide(t_height_in);
+    gtk_widget_show(submit);
+    gtk_widget_show(img);
+
+    gtk_window_resize(GTK_WINDOW(window),arg2,arg3);
+
+    list = malloc(sizeof(list_t));
+
+    state = 1;
+  }
 }
 
 void activate(GtkApplication* app,gpointer user_data) {
   GtkWidget* box;
+  GtkWidget* imgcont;
+
+  state = 0;
 
   window = gtk_application_window_new(app);
   gtk_window_set_title(GTK_WINDOW(window),"pixelate");
@@ -63,12 +110,15 @@ void activate(GtkApplication* app,gpointer user_data) {
   gtk_container_add(GTK_CONTAINER(box),t_height_in);
   g_signal_connect(t_height_in,"changed",G_CALLBACK(changed),NULL);
 
-  submit = gtk_button_new_with_label("Next");
-  gtk_container_add(GTK_CONTAINER(box),submit);
-  g_signal_connect(submit,"pressed",G_CALLBACK(pressed),NULL);
+  imgcont = gtk_event_box_new();
+  gtk_container_add(GTK_CONTAINER(box),imgcont);
 
   img = gtk_image_new_from_pixbuf(gdk_pixbuf_new_from_data(arg0,GDK_COLORSPACE_RGB,arg1 > 3,8,arg2,arg3,arg2,NULL,NULL));
-  gtk_container_add(GTK_CONTAINER(box),img);
+  gtk_container_add(GTK_CONTAINER(imgcont),img);
+
+  submit = gtk_button_new_with_label("Next");
+  g_signal_connect(submit,"pressed",G_CALLBACK(pressed),NULL);
+  gtk_container_add(GTK_CONTAINER(box),submit);
 
   gtk_widget_show_all(window);
   gtk_widget_hide(img);
