@@ -28,9 +28,7 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 
   // pass 1 of buf to choose colors to be included
   for (int y1 = 0;y1 < c_height;y1++)
-    for (int x1 = 0;x1 < c_width;x1++) {
-      printf("\n%d:%d:",x1,y1);
-
+    for (int x1 = 0;x1 < c_width;x1++)
       for (int y2 = -2;y2 <= 2;y2++)
 	for (int x2 = -2;x2 <= 2;x2++)
 	  if ((x2 || y2) && x1 + x2 >= 0 && y1 + y2 >= 0 && x1 + x2 < c_width && y1 + y2 < c_height) {
@@ -48,16 +46,14 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 			    + buf[((y1 + y2) * c_width + (x1 + x2)) * channels + i] + 1) / 2;
 	    }
 
-	    printf("\n\t%d:%d:\t",x1 + x2,y1 + y2);
-
 	    for (int y3 = -1;y3 <= 1;y3++)
 	      for (int x3 = -1;x3 <= 1;x3++)
 		if (abs(y2 + y3) < 2 && abs(x2 + x3) < 2
-		 && (x2 + x3 != 0 || y2 + y3 != 0) && (x3 != 0 || y3 != 0)
+		 && (x2 + x3 != 0 || y2 + y3 != 0)
+		 && (x3 != 0 || y3 != 0)
 		 && x1 + x2 + x3 >= 0 && y1 + y2 + y3 >= 0
 		 && x1 + x2 + x3 < c_width && y1 + y2 + y3 < c_height) {
 		  char reset = 1;
-		  printf("%d:%d ",x1 + x2 + x3,y1 + y2 + y3);
 
 		  for (int i = 0;i < channels;i++)
 		    // check if the pixels aren't a gradient
@@ -66,26 +62,36 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 		      reset = 0; // there is no gradient on this channel so the color shouldn't be disabled
 
 		  // disable exporting the color
-		  if (reset) {
+		  if (reset)
 		    bit_reset(colored,(y1 + y2 + y3) * c_width + x1 + x2 + x3);
-		  }
 		}
 	  }
-    }
-
-  printf("\n");
 
   // pass 2 to count colors to export
 
-  int colored_count = 0;
+  palette_len = 0;
 
   for (int y = 0;y < c_height;y++)
     for (int x = 0;x < c_width;x++)
-      if (bit_get(colored,y * c_width + x)) {
-	colored_count++;
+      if (bit_get(colored,y * c_width + x))
+	palette_len++;
 
-	printf("%u:%u ",x,y);
-      }
+  // pass 3 to export colors to array
 
-  printf("\n%u\n",colored_count);
+  palette = malloc(palette_len);
+
+  int j = 0;
+
+  for (int i = 0;i < c_width * c_height;i++)
+    if (bit_get(colored,i)) {
+      memcpy(palette + j * channels,buf + i * channels,channels);
+      j++;
+    }
+
+  for (int i = 0;i < palette_len;i++) {
+    for (int j = 0;j < channels;j++)
+      printf("%u,",palette[i * channels + j]);
+
+    printf("\n");
+  }
 }
