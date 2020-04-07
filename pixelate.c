@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "pixelate.h"
+#include "read.h"
 
 /*
   pixelate bitmap image buf (in place)
@@ -119,12 +120,13 @@ int test() {
     0xFF,0xFF,0xFF
   };
 
-  pixelate_auto(img,3,4,4,2,2);
+  data_t* data = malloc(sizeof(data_t));
+  read_img("test.png",data);
 
-  for (int i = 0;i < 48;i++)
-    printf("%u,",img[i]);
+  for (int i = 0;i < data->c_width * data->c_height * data->channels;i++)
+    printf("%02hhX",data->buf[i]);
 
-  printf("\b \n");
+  free(data);
 }
 
 int main() {
