@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
@@ -21,6 +22,7 @@ char* arg6;
 int   arg7;
 
 list_t* list;
+list_t* l_curr;
 int state;
 
 GtkWidget* window;
@@ -28,6 +30,15 @@ GtkWidget* t_width_in;
 GtkWidget* t_height_in;
 GtkWidget* submit;
 GtkWidget* img;
+
+void button_press(GtkWidget* _0,GdkEventButton* evt,gpointer _1) {
+  l_curr->val = malloc(arg1);
+  l_curr->next = malloc(sizeof(list_t));
+
+  memcpy(l_curr->val,arg0 + (int) floor(evt->y) * arg1 * arg2 + (int) floor(evt->x) * arg1,arg1);
+
+  l_curr = l_curr->next;
+}
 
 void changed(GtkEditable* infield,gpointer _0) {
   const gchar* text;
@@ -45,13 +56,12 @@ void changed(GtkEditable* infield,gpointer _0) {
 
 void pressed(GtkButton* button,gpointer _0) {
   if (state) {
-    list_t* l_curr;
     int l_count;
 
     l_curr = list;
     l_count = 0;
 
-    while (l_curr != NULL) {
+    while (l_curr->next != NULL) {
       l_curr = l_curr->next;
       l_count++;
     }
@@ -82,6 +92,7 @@ void pressed(GtkButton* button,gpointer _0) {
     gtk_window_resize(GTK_WINDOW(window),arg2,arg3);
 
     list = malloc(sizeof(list_t));
+    l_curr = list;
 
     state = 1;
   }
@@ -90,6 +101,7 @@ void pressed(GtkButton* button,gpointer _0) {
 void activate(GtkApplication* app,gpointer user_data) {
   GtkWidget* box;
   GtkWidget* imgcont;
+  GtkWidget* imgalign;
 
   state = 0;
 
@@ -113,8 +125,15 @@ void activate(GtkApplication* app,gpointer user_data) {
   imgcont = gtk_event_box_new();
   gtk_container_add(GTK_CONTAINER(box),imgcont);
 
+  //imgalign = gtk_alignment_new(0,0,0,0);
+  //gtk_container_add(GTK_CONTAINER(imgcont),imgalign);
+
   img = gtk_image_new_from_pixbuf(gdk_pixbuf_new_from_data(arg0,GDK_COLORSPACE_RGB,arg1 > 3,8,arg2,arg3,arg2,NULL,NULL));
   gtk_container_add(GTK_CONTAINER(imgcont),img);
+
+  g_signal_connect(imgcont,"button_press_event",G_CALLBACK(button_press),img);
+
+  gtk_widget_set_halign(img,GTK_ALIGN_START);
 
   submit = gtk_button_new_with_label("Next");
   g_signal_connect(submit,"pressed",G_CALLBACK(pressed),NULL);
