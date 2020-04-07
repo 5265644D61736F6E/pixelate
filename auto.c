@@ -88,10 +88,6 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
       j++;
     }
 
-  for (int i = 0;i < palette_len;i++) {
-    for (int j = 0;j < channels;j++)
-      printf("%u,",palette[i * channels + j]);
-
-    printf("\n");
-  }
+  // function call
+  pixelate(buf,channels,c_width,c_height,t_width,t_height,palette,palette_len);
 }
