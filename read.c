@@ -25,7 +25,7 @@ int read_img(char* fname,data_t* data) {
   fp = fopen(fname,"rb");
 
   if (!fp) {
-    printf("Failed to open %s",fname);
+    fprintf(stderr,"Failed to open %s\n",fname);
     return 1;
   }
 
@@ -73,8 +73,76 @@ int read_img(char* fname,data_t* data) {
 
     buf = png_get_rows(png,info);
 
+    // copy rows to buffer
     for (int i = 0;i < data->c_height;i++)
       memcpy(data->buf + i * data->c_width * data->channels,buf[i],data->c_width * data->channels);
+
+    // clean up
+    png_destroy_read_struct(&png,&info,&endinfo);
   } else
     return 1;
+}
+
+int write_img(char* fname,data_t* data) {
+  FILE* fp;
+
+  png_structp png;
+  png_infop info;
+  png_infop endinfo;
+  png_bytepp rows;
+
+  fp = fopen(fname,"wb");
+
+  if (!fp) {
+    fprintf(stderr,"Failed to open %s\n",fname);
+    return 1;
+  }
+
+  if (!(png = png_create_write_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL))) {
+    fclose(fp);
+    return 1;
+  }
+
+  if (!(info = png_create_info_struct(png))) {
+    png_destroy_write_struct(&png,NULL);
+  }
+
+  png_init_io(png,fp);
+
+  int color_type;
+
+  // make color type
+  if (data->channels == 1)
+    color_type = PNG_COLOR_TYPE_GRAY;
+  else if (data->channels == 2)
+    color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+  else if (data->channels == 3)
+    color_type = PNG_COLOR_TYPE_RGB;
+  else if (data->channels == 4)
+    color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+  else {
+    fprintf(stderr,"How are these colors formatted? Assuming grayscale...\n");
+    color_type = PNG_COLOR_TYPE_GRAY;
+  }
+
+  // write image header
+  png_set_IHDR(png,info,
+	       data->c_width,data->c_height,
+	       8,color_type,
+	       PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
+
+  // convert data->buf to rows
+  rows = malloc(data->c_height * sizeof(png_bytep));
+
+  for (int i = 0;i < data->c_height;i++) {
+    rows[i] = malloc(data->c_width * data->channels);
+    memcpy(rows[i],data->buf + i * data->c_width * data->channels,data->c_width * data->channels);
+  }
+
+  // write to PNG
+  png_set_rows(png,info,rows);
+  png_write_png(png,info,0,NULL);
+
+  // clean up
+  png_destroy_write_struct(&png,&info);
 }
