@@ -91,7 +91,7 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 
   // pass 3 to export colors to array
 
-  palette = malloc(palette_len);
+  palette = malloc(palette_len * channels);
 
   for (i = 0;i < c_width * c_height;i++)
     if (bit_get(colored,i)) {
