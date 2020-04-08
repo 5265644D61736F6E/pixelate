@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "pixelate.h"
-#include "read.h"
 
 /*
   pixelate bitmap image buf (in place)

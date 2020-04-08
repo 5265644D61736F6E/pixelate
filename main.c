@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "pixelate.h"
-#include "read.h"
+#include "imgio.h"
 
 #define HELP_MSG ""
 
