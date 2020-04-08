@@ -5,7 +5,18 @@
 #include "pixelate.h"
 #include "imgio.h"
 
-#define HELP_MSG ""
+#define HELP_MSG							\
+  "pixelate is a program to generate high-contrast, pixelated images\n"	\
+  "\n"									\
+  "Usage:\tpixelate FILE\n"						\
+  "\tpixelate { -u | -a } FILE WIDTH HEIGHT\n"				\
+  "\tpixelate -a FILE WIDTH HEIGHT\n"					\
+  "\n"									\
+  "Options:\n"								\
+  "\t-u\t- run Unix-based CLI instead of GUI\n"				\
+  "\t-a\t- automatically detect colors in image (instead of asking)\n"	\
+  "\t-h,--help\n"							\
+  "\t\t- print this help message\n"
 
 int main(int argc,char** argv) {
   data_t* img;
@@ -25,15 +36,17 @@ int main(int argc,char** argv) {
   for (int i = 1;i < argc;i++) {
     if (*(argv[i]) == '-')
       if (argv[i][1] == '-')
-	if (!strcmp(argv[i] + 2,"help"))
+	if (!strcmp(argv[i] + 2,"help")) {
 	  printf(HELP_MSG);
-	else {
+	  return 0;
+	} else {
 	  printf("Unrecognized option\n");
 	  return 2;
 	}
-      else if (argv[i][1] == 'h')
+      else if (argv[i][1] == 'h') {
 	printf(HELP_MSG);
-      else if (argv[i][1] == 'u')
+	return 0;
+      } else if (argv[i][1] == 'u')
 	unix_mode = 1;
       else if (argv[i][1] == 'a')
 	automatic = 1;
