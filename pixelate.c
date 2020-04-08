@@ -44,8 +44,7 @@ void pixelate(unsigned char* buf,int channels,int c_width,int c_height,int t_wid
   for (y1 = 0;y1 < t_height;y1++)
     for (x1 = 0;x1 < t_width;x1++) {
       // initialize colorcount
-      for (i = 0;i < palette_len;i++)
-	colorcount[i] = 0;
+      memset(colorcount,0,palette_len * sizeof(int));
 
       for (y2 = y1 * c_height / t_height;y2 < (y1 + 1) * c_height / t_height;y2++)
 	for (x2 = x1 * c_width / t_width;x2 < (x1 + 1) * c_width / t_width;x2++) {

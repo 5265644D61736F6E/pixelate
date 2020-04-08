@@ -4,6 +4,8 @@
 
 #include "pixelate.h"
 
+#define CONTRAST 4
+
 char bit_get(unsigned char* buf,int off) {
   return (buf[off / 8]) & (128 >> (off % 8));
 }
@@ -53,9 +55,9 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 	    // create range for the condition to disable the color export
 	    for (i = 0;i < channels;i++) {
 	      color_min[i] = (buf[(y1 * c_width + x1) * channels + i]
-			    + buf[((y1 + y2) * c_width + (x1 + x2)) * channels + i]) / 2;
+			   + buf[((y1 + y2) * c_width + (x1 + x2)) * channels + i]) / 2;
 	      color_max[i] = (buf[(y1 * c_width + x1) * channels + i]
-			    + buf[((y1 + y2) * c_width + (x1 + x2)) * channels + i] + 1) / 2;
+			   + buf[((y1 + y2) * c_width + (x1 + x2)) * channels + i] + 1) / 2;
 	    }
 
 	    for (y3 = -1;y3 <= 1;y3++)
@@ -69,8 +71,8 @@ void pixelate_auto(unsigned char* buf,int channels,int c_width,int c_height,int 
 
 		  for (i = 0;i < channels;i++)
 		    // check if the pixels aren't a gradient
-		    if (buf[((y1 + y2 + y3) * c_width + x1 + x2 + x3) * channels + i] < color_min[i]
-		     || buf[((y1 + y2 + y3) * c_width + x1 + x2 + x3) * channels + i] > color_max[i])
+		    if (buf[((y1 + y2 + y3) * c_width + x1 + x2 + x3) * channels + i] < color_min[i] - CONTRAST
+		     || buf[((y1 + y2 + y3) * c_width + x1 + x2 + x3) * channels + i] > color_max[i] + CONTRAST)
 		      reset = 0; // there is no gradient on this channel so the color shouldn't be disabled
 
 		  // disable exporting the color
