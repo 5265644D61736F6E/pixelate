@@ -9,5 +9,6 @@ typedef struct data {
 } data_t;
 
 int read_img(char* fname,data_t* data);
+int write_img(char* fname,data_t* data);
 
 #endif
